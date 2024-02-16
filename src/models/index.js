@@ -1,8 +1,8 @@
-import Sender from "./sender.js"
+import User from "./user.js"
 import Order from "./order.js"
-import Rider from "./rider.js"
+import Notification from "./notificationModel.js"
 const models = {
-    Sender, Order, Rider
+    User, Order, Notification
 }
 
 export default models;

@@ -1,7 +1,7 @@
-import sender from "./sender.js"
-
+import {validateSignInUser, validateSignUpUser} from "./user.js"
+import validateCreateOrder from "./order.js"
 const validations = {
-    sender
+    validateSignInUser,validateSignUpUser, validateCreateOrder
 }
 
 export default validations
