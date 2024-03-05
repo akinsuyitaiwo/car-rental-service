@@ -1,5 +1,5 @@
 import models from "../models/index.js"
-import validateCreateOrder from "../validations/order.js";
+import {validateCreateOrder, validateOrderResponse} from "../validations/order.js";
 
 
 
@@ -41,7 +41,6 @@ const createOrder = async(req,res) =>{
 const getOrders = async (req, res) =>{
     try {
         const  orders = await models.Order.find()
-                                .populate('sender', 'username')
                                 .sort('-createdAt');
         if(orders < 1){
             return res.status(404).json("No orders found")
@@ -55,4 +54,85 @@ const getOrders = async (req, res) =>{
     }
 }
 
-export {createOrder, getOrders};
+const getOrderById = async (req, res) => {
+    try {
+        const {orderId}= req.params;
+        const {_id} = req.user
+        const user = await models.User.findById({_id})
+        if(!user){
+            return res.status(404).send("user does not exist")
+        }
+        const order = await models.Order.findById({_id :orderId}).lean();
+        if(user._id != order.sender.toString()){
+            return res.status(404).send({
+                message: "Order does not exist"
+            });
+        }
+        if(!order){
+            return res.status(404).send({
+                message:'Order not found.'
+            });
+        }
+        return res.status(200).send({
+            data : order,
+            message :"order fetched successfully"
+        })
+    } catch (error) {
+        console.error("Error in getting order by id ", error.message);
+     return res.status(404).send({
+        message: "server error"
+     })   
+    }
+}
+
+const orderResponse = async (req, res) => {
+    try {
+        const {orderId}= req.params;
+        const {_id} = req.user 
+        const user = await models.User.findById(_id);
+        if(user.role !== 'Rider') {
+            return res.status(403).send({
+                message: "You are not authorized to perform this action."
+            });
+        }
+        const order = await models.Order.findById({_id: orderId});
+        if(!order){
+            return res.status(404).send({
+                message:'Order does not exist.'
+            });
+        }
+        const{error, value} = validateOrderResponse(req.body)
+        if(error){
+            return res.status(400).send(error.message)
+        }
+        const {response} = value;
+        if(response === "Accept"){
+            order.status = "Accepted"
+            order.expired = true;
+            order.rider =  _id;
+            order.save();
+            return res.status(200).send({
+                message: "Order accepted"
+            });
+        }
+        if(response === "Decline"){
+            order.status = "Declined"
+            order.expired = true
+            order.save();
+            return res.status(200).send({
+                message: "Order decline"
+            });
+        }
+        return res.status(200).send({
+            message:"Order modified successfully",
+        })
+        
+    } catch (error) {
+        console.error("Error in getting order response ", error.message);
+        return res.staus(404).send({
+            message:"Server Error"
+        })
+    }
+}
+
+export {createOrder, getOrders, getOrderById, orderResponse};

@@ -20,4 +20,11 @@ const validateCreateOrder = (order) => {
     })
     return schema.validate(order, options)
 };
-export default validateCreateOrder
+
+const validateOrderResponse = (order) => {
+	const schema = Joi.object({
+		response: Joi.string().valid("Accept", "Decline").required()
+	});
+	return schema.validate(order, options);
+}
+export {validateCreateOrder, validateOrderResponse}

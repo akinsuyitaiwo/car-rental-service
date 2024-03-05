@@ -15,7 +15,8 @@ const orderSchema = new Schema (
             required: true
         },
         rider:{
-            type: String,
+            type: Schema.Types.ObjectId,
+            ref: "User"
         },
         price: {
             type: Number,
@@ -25,10 +26,6 @@ const orderSchema = new Schema (
             type: String,
             enum: ["Accepted", "Pending", "Declined"],
             default: "Pending"
-        },
-        accepted: {
-            type: Boolean,
-            default: false
         },
         expired: {
             type: Boolean,
